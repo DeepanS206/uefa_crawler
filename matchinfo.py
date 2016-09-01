@@ -2,12 +2,14 @@ from lxml import html
 import pickle
 import os
 
+#function returns an array of referee name and referee nationlality parsed from string
 def getNationality(string):
   inx = string.index('(')
   refName = string[:inx-1]
   refNat = string[inx+1:len(string)-1]
   return [refNat, refName]
 
+#function to see if game went into extra time
 def extraTime(tree):
   timeline = tree.xpath('//div[@class="grid_12 timeline"]')[0].xpath('child::div')[0].xpath('@class')[0]
   #print(timeline)
@@ -15,6 +17,7 @@ def extraTime(tree):
     return True
   return False
 
+#function to get penalty kicks taken by each team during the regular time of the game
 def getPenalties (table):
   penaltyHome = 0
   penaltyAway = 0
@@ -40,7 +43,7 @@ def getPenalties (table):
 def matchInfo (urlext, countryDict):
   dictInfo = {}
   url = 'http://www.uefa.com' + urlext
-  cmd = 'phantomjs save_page2.js ' + url + ' > match.xml'
+  cmd = 'phantomjs save_page2.js ' + url + ' > match.xml' #phantomjs subroutine to get jQuery loaded html
   os.system(cmd)
   htmlString = ''
   with open('match.xml') as f:
@@ -52,8 +55,8 @@ def matchInfo (urlext, countryDict):
   dictInfo['penalties'] = getPenalties(table)
   boolean = extraTime(tree)
   dictInfo['extra_time'] = boolean
-  #print('Extra Time: ' + str(boolean))
 
+  #code gets refereee information from game
   for i in range(len(table)):
     tag = table[i].xpath('child::td/h2/text()')
     if len(tag) != 0:
@@ -74,6 +77,7 @@ def matchInfo (urlext, countryDict):
         dictInfo['asstref2'] = assist2Nat[1]
         dictInfo['asstref2_nat'] = countryDict[assist2Nat[0]]
 
+  #Code below gets yellow/red card information
   statgrid = tree.xpath('//div[@class="matchstat"]')[0]
   stattable = statgrid.xpath('child::table/tbody/tr')
   yindex = 0
